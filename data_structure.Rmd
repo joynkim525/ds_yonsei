@@ -1,0 +1,155 @@
+---
+title: "data_structure"
+author: '2015122016'
+date: "2019년 4월 4일"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r include=F}
+library(tidyverse)
+library(DT)
+```
+
+#Introduction
+data structure (x)     
+data_structure (o)     
+data-structure (o)     
+DataStructure  (o)     
+<- let naming consistency 
+
+1. try 'knit' before writing the main contents
+
+option not to make the extra folder to save the images like graphs
+: "self_contained: true"
+
+#자료구조
+##Scalar
+- 연속형
+    - 자연수 integer
+    - 실수 floating point
+- 범주형
+    - factor
+    - 문자열 string
+
+###Numeric
+
+$$\text{BMI} = \frac{weight}{\left(height/100\right)^{2}}$$
+
+$$\text{BMI} = \frac{\text{체중(Kg)}}{\text{키(m)}^{2}}$$
+
+Using the equation above,
+
+ 브로카지수| BMI값 
+-|:-:
+ 저체중 | < 18.5
+ 정상 체중 | 18.5 ~ 25.0 
+ 과체중 | 25.0 ~ 30.0 
+ 비만 | > 30.0 
+
+* :-: 가운데정렬 
+
+```{r integer}
+height <- c(170, 180, 165)
+weight <- c(50, 70, 85)
+mean(height)
+1.01*height
+
+BMI <- weight / (height/100)^2 ; BMI
+(BMI <- weight / (height/100)^2)
+
+```
+
+###Characteristic & Factor
+```{r factor}
+BMI_string <- c('저체중', '정상 체중', '비만')
+
+BMI_factor <- factor(BMI_string, levels=c('저체중', '정상 체중', '과체중', '비만'))
+#if there is no '과체중' -> as.factor(BMI_string) is also ok
+
+as.numeric(BMI_string)
+#but it is neccessary to check whether the gap between the levels is same 
+
+BMI_mat <- rbind(BMI, BMI_string)
+colnames(BMI_mat) <- c('A', 'B', 'C')
+BMI_mat
+
+length(BMI)
+BMI_df <- data.frame("BMI"= BMI, "BMI_factor"=BMI_factor, "BMI_string"=BMI_string)
+BMI_df
+```
+
+* useful packages for categorcal variables
+- forcats (later)
+
+* extra
+- using in test mining
+    - paste(BMI_string, "+")
+    - paste(BMI_string, collapse = ",")
+
+
+
+#외부 데이터 가져오기
+```{r}
+data <- tribble(
+~'가명', ~'체중', ~'키', ~'재산',
+'아이언맨', 70, 185, 1000,
+'이기쁨', 48, 162, 1300,
+'어피치', 40, 100, 999999999,
+'무지', 20, 50, 999999999,
+'뽀로로', 30, 50, 0,
+'이상완', 100, 200,10000,
+'곰돌이푸',20,85,1600000000000,
+'B', 73.13, 183, 105,
+'F', 45, 165, 10000000000000,
+'YEAH', 170, 48, 10000,
+'토르', 85, 185, 9999999999999,
+'AA', 60, 100, 10000000,
+'AAA', 76, 111, 10093,
+'배수한', 180, 64, 1000,
+'지현이', 46, 175, 1000000000000,
+'응통', 50, 150, 7500,
+'마라탕' ,1,30,12345678,
+'금순이', 45, 156, 50000,
+'이동석', 177, 68, 10000000000000,
+'김원채',45,168,50000000,
+'피카츄',100,50,1000000) 
+summary(data)
+
+work_data <- read.csv("clipboard")
+#import the data copied on clipboard
+#Awesome!!
+summary(work_data)
+
+
+dat <- read.csv("datdat.csv")
+#memo에서 save as (name).csv
+summary(dat)
+
+library(tidyverse)
+
+dt_df <- read_csv("data_fin.csv",
+                       col_types = cols(
+                            가명 = col_character(),
+                            체중 = col_double(),
+                            키 = col_double(),
+                            재산 = col_double()
+                          ))               
+#function : read_csv  *** read.csv (X)
+#encoding : UTF-8
+ 
+model_df <- dat %>% mutate(rich = ifelse(dat[,4] > median(dat[,4]), 'rich', 'unrich')) %>%
+  mutate(rich = factor(rich, levels=c('unrich', 'rich'))) %>%
+  select(-가명)
+
+model_df %>%
+  DT::datatable()
+```
+
+*extra
+- tribble() : make dataframe
+- 전체 열 앞에 커서 : alt + scrolling
+- 다중선택(drag) : Shift + 방향키 -> '' or () 사용 가능 
+
+
+
