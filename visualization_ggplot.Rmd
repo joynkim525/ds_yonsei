@@ -1,0 +1,117 @@
+---
+title: "visualization_ggplot"
+author: '2015122016'
+date: "2019년 5월 2일"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#그래프 문법 실습
+ggplot: grammar of graphics plot
+
+##Base Graph
+```{r Base Graph}
+sample_dat <- rnorm(100, 0, 1)
+sample2_dat <- rnorm(100, 10, 5)
+
+hist(sample_dat)
+
+plot(sample_dat, sample2_dat)
+```
+
+##ggplot2 - Static data
+```{r ggplot2 - Static data}
+library(gapminder)
+library(tidyverse)
+
+  gapminder %>%
+  filter(continent %in% c("Africa", "Asia")) %>%
+  ggplot(aes(x=gdpPercap, y=lifeExp, color=continent)) +
+    geom_point(alpha=0.5) +
+    scale_x_log10(labels = scales::comma) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = "1인당 국민소득과 기대수명",
+         subtitle = "UN 5년 간 시계열 데이터",
+         x = "1인당 국민소득",
+         y = "기대수명",
+         color = "대륙",
+         caption = "자료출처: http:// www.tidtverse.com") +
+  facet_wrap(~continent) +
+  theme(legend.position = "bottom")
+
+```
+### Basic component
+- aes: x-axis, y-axis, color(~category)
+- geom: type of plot
+- scale: x-range, y-range 
+         cf. sclae_x_(transformation)
+
+### Deco
+- labs
+- geom_point(alpha=): 0 ~ 1 -> 1에 가까울수록 불투명
+- theme_(name): ggplot2 function이라는 데 안 돌아감
+  cf. tufte: simplest  
+- font: {global option} -> {appearance} -> {editor font} 
+         -> {consolas-Bolditalic (or) D2coding(다운로드 필요)}
+      : 
+- facet_wrap: small information으로 분할해서 multiple result
+- theme(): 
+
+##interactive graph
+```{r interactive graph}
+library(plotly)
+
+gapminder_g <- gapminder %>% 
+  filter(continent %in% c("Africa", "Asia")) %>% 
+  ggplot(aes(x=gdpPercap, y=lifeExp, color=continent, 
+             text=paste0("1인당 GDP:", scales::comma(gdpPercap), "\n",
+                         "기대수명: ", lifeExp))) +
+    geom_point(alpha=0.5) +
+    scale_x_sqrt(labels = scales::comma) +
+    labs(title="1인당 국민소득과 기대수명",
+         subtitle="UN 5년 시계열 데이터",
+         color="대륙",
+         x="1인당 국민소득",
+         y="기대수명",
+         caption="자료출처: http://www.tidyverse.com") +
+    theme(legend.position = "none")
+gapminder_g
+
+ggplotly(gapminder_g, tooltip="text")
+```
+
+```{r}
+boxplot_g <- gapminder %>% 
+  filter(continent %in% c("Africa", "Asia")) %>% 
+  ggplot(aes(x=continent, y=lifeExp, color=continent)) +
+    geom_boxplot(alpha=0.5)
+
+library(gridExtra)
+grid.arrange(gapminder_g, boxplot_g, nrow=1)
+```
+
+##animation
+```{r}
+install.packages("png")
+library(gganimate)
+library(gifski)
+library(png)
+
+ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  scale_color_viridis_d() +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(title = '연도: {frame_time}', x = '1인당 GDP', y = '기대수명') +
+  transition_time(year) +
+  ease_aes('linear')
+```
+시계열 데이터가 필요 <- 움직이는 기준
+
+
+
+

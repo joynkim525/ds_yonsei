@@ -1,0 +1,99 @@
+---
+title: "shiny r hw"
+author: '2015122016'
+date: "2019년 6월 14일"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(shiny)
+library(ggplot2)
+library(DT)
+```
+
+```{r}
+ui = fluidPage(
+  selectInput("x", "Select independent variable",
+              choices=setdiff(colnames(mtcars), "mpg")),
+  actionButton("anlaysis", "Analysis"),
+  verbatimTextOutput("result"),
+  plotOutput("plot")
+)
+
+server = function(input, output){
+  lmequation = reactive({
+    paste0("lm(mpg~", input$x, ",data=mtcars)")
+  })
+  
+  output$result=renderPrint({
+    
+    input$analysis
+    isolate({
+      fit = eval(parse(text=lmequation()))
+      summary(fit)
+    })
+  })
+
+  output$plot=renderPlot({
+    input$analysis
+    isolate({
+      
+      fit = eval(parse(text=lmequation()))
+      equation = paste0(round(fit$coef[2], 2), input$x,
+                        ifelse(fit$coef[1] >= 0, "+", "-"), abs(round(fit$coef[1], 2)))
+      
+      ggplot(data=mtcars, aes_string(x=input$x, y="mpg"))+
+        geom_point() + stat_smooth(method='lm')+labs(title=equation)
+    })
+  })
+}
+
+
+shinyApp(ui, server)
+```
+
+```{r}
+ui = fluidPage(
+  column(3,
+         radioButtons("dataname", "Select data",
+               choices=c("mtcars", "iris")),
+         selectInput("y", 'select dependent variable',
+                     choices = ""),
+         selectInput("x", 'select independent variable',
+                     choices = "", multiple = T)
+         ),
+  
+  column(9,
+         checkboxInput('showtable', 'Show table'),
+         conditionalPanel(condition='input.showtable == true',
+                          DT::dataTableOutput("table"))
+         )
+  
+  
+)
+
+server = function(input, output){
+  data=reactive({
+    eval(parse(text=input$dataname))
+  })
+  
+  observeEvent(input$dataname, {
+    updateSelectInput(session, "y", choices=colnames(data()))
+  })
+  
+  output$table=DT::renderDataTable(DT::datatable(
+    data()
+  ))
+  
+  
+  
+}
+
+shinyApp(ui, server)
+```
+
